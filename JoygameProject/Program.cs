@@ -61,7 +61,7 @@ builder.Services.AddAuthentication(options => {
             },
             OnChallenge = context =>
             {
-                context.Response.Redirect("/Auth/Login");
+                context.Response.Redirect("/");
                 context.HandleResponse(); // önemli, yoksa 401 fırlatır
                 return Task.CompletedTask;
             }
@@ -113,6 +113,14 @@ app.UseStatusCodePages(context =>
     if (response.StatusCode == 403)
     {
         response.Redirect("/Forbidden");
+    }
+    else if (response.StatusCode == 401)
+    {
+        response.Redirect("/Unauthorized");
+    }
+    else if (response.StatusCode == 404)
+    {
+        response.Redirect("/NotFound");
     }
 
     return Task.CompletedTask;

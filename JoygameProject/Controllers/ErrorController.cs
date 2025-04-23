@@ -9,5 +9,17 @@ namespace JoygameProject.Web.Controllers
         {
             return View();
         }
+
+        [Route("Unauthorized")]
+        public IActionResult Unauthorized()
+        {
+            return View();
+        }
+
+        [Route("NotFound")]
+        public IActionResult NotFound()
+        {
+            return View();
+        }
     }
 }

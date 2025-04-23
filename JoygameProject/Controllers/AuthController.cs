@@ -8,14 +8,8 @@ using System.Net;
 namespace JoygameProject.Web.Controllers
 {
     [Route("[action]")]
-    public class AuthController : Controller
+    public class AuthController(IMediator mediator) : Controller
     {
-        private readonly IMediator _mediator;
-
-        public AuthController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
         [HttpGet]
         public IActionResult ResetPassword(string token)
         {
@@ -26,6 +20,9 @@ namespace JoygameProject.Web.Controllers
         [Route("/")]
         public IActionResult Login()
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "Home");
+
             var model = new LoginViewModel();
 
             if (Request.Cookies.TryGetValue("rememberedEmail", out var email))
@@ -34,6 +31,12 @@ namespace JoygameProject.Web.Controllers
                 model.RememberMe = true;
             }
             return View(model);
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
         }
         [HttpGet]
         [AllowAnonymous]
@@ -50,16 +53,16 @@ namespace JoygameProject.Web.Controllers
             if (!ModelState.IsValid)
                 return View("ForgotPassword", model);
 
-            var result = await _mediator.Send(new ForgotPasswordCommandRequest() { Email = model.Email });
+            var result = await mediator.Send(new ForgotPasswordCommandRequest() { Email = model.Email });
 
-            if (result.Status != HttpStatusCode.OK)
-            {
-                ModelState.AddModelError("", result.Message ?? "Bir hata oluştu.");
-                return View(model);
-            }
+            //if (result.Status != HttpStatusCode.OK)
+            //{
+            //    ModelState.AddModelError("", result.Message ?? "Bir hata oluştu.");
+            //    return View(model);
+            //}
 
             TempData["Success"] = "Şifre sıfırlama maili gönderildi.";
-            return RedirectToAction("Login");
+            return RedirectToAction("ForgotPasswordConfirmation", "Auth");
         }
         [HttpPost]
         [AllowAnonymous]
@@ -68,7 +71,7 @@ namespace JoygameProject.Web.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var response = await _mediator.Send(new LoginCommandRequest
+            var response = await mediator.Send(new LoginCommandRequest
             {
                 Email = model.Email,
                 Password = model.Password
@@ -121,7 +124,7 @@ namespace JoygameProject.Web.Controllers
                 NewPassword = model.NewPassword
             };
 
-            var result = await _mediator.Send(command);
+            var result = await mediator.Send(command);
 
             if (!result.Result)
             {

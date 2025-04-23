@@ -1,0 +1,143 @@
+﻿@using JoygameProject.Application.DTOs
+@using JoygameProject.Application.Helpers
+@model List<CategoryTreeDto>
+
+<h2>Kategoriler</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <ul id="category-list">
+            @foreach (var category in Model)
+            {
+                <li>
+                    <a href="#" class="category-link" data-id="@category.Id">@category.Name</a>
+                    @if (category.Children.Any())
+                    {
+                        <ul>
+                            @foreach (var child in category.Children)
+                            {
+                                <li>
+                                    <a href="#" class="category-link" data-id="@child.Id">@child.Name</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+        </ul>
+    </div>
+
+    <div class="col-md-8">
+        <div id="product-list">
+            <h3>Ürünler</h3>
+            @foreach (var category in Model)
+            {
+                foreach (var product in category.Products)
+                {
+                    <div class="card mb-3" style="max-width: 540px;">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                                <img src="@product.ImageUrl" class="img-fluid rounded-start" alt="@product.Name">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <h5 class="card-title">@product.Name</h5>
+                                    <p class="card-text">Fiyat: <strong>@product.Price ₺</strong></p>
+                                    <a href="@SlugHelper.GenerateSlug(product.Name)/@product.Id" class="btn btn-sm btn-outline-info mt-2">
+                                        Detaya Git
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const allData = @Html.Raw(Json.Serialize(Model));
+
+        function findCategoryById(data, id) {
+            for (let cat of data) {
+                if (cat.id === id) return cat;
+                if (cat.children?.length) {
+                    const found = findCategoryById(cat.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function generateSlug(text) {
+            return text
+                .toLowerCase()
+                .replace(/ /g, '-')
+                .replace(/ı/g, 'i')
+                .replace(/ş/g, 's')
+                .replace(/ç/g, 'c')
+                .replace(/ğ/g, 'g')
+                .replace(/ü/g, 'u')
+                .replace(/ö/g, 'o')
+                .replace(/[^a-z0-9\-]/g, '') // sadece a-z, 0-9 ve - bırak
+                .replace(/-+/g, '-'); // fazla tireyi teke indir
+        }
+
+        function renderProducts(products, categoryName) {
+            const container = document.getElementById("product-list");
+            container.innerHTML = "";
+
+            container.innerHTML = `
+                <h3 class="mb-3">${categoryName} İçin Ürünler</h3>
+                ${products.map(p => `
+                    <div class="card mb-3" style="max-width: 540px;">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                                <img src="${p.imageUrl}" class="img-fluid rounded-start" alt="${p.name}">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <h5 class="card-title">${p.name}</h5>
+                                    <p class="card-text">Fiyat: <strong>${p.price} ₺</strong></p>
+                                     <a href="/${generateSlug(p.name)}/${p.id}" class="btn btn-sm btn-outline-info mt-2">
+                                        Detaya Git
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        document.querySelectorAll(".category-link").forEach(el => {
+            el.addEventListener("click", (e) => {
+                e.preventDefault();
+                const catId = parseInt(e.target.dataset.id);
+                const cat = findCategoryById(allData, catId);
+
+                const products = cat.products ?? [];
+                renderProducts(products, cat.name);
+            });
+        });
+
+        // İlk yüklemede ana kategorilerin ürünlerini bas
+        window.addEventListener("DOMContentLoaded", () => {
+            const allProducts = [];
+
+            // SADECE ana kategorilerin products'ları
+            allData.forEach(cat => {
+                if (cat.products?.length) {
+                    allProducts.push(...cat.products);
+                }
+            });
+
+            renderProducts(allProducts, "Tüm Kategoriler");
+        });
+    </script>
+}
+
+

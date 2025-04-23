@@ -1,0 +1,33 @@
+﻿@{
+    Layout = "_LoginLayout";
+}
+
+
+@using JoygameProject.Web.ViewModels
+@model LoginViewModel
+
+<h2>Giriş Yap</h2>
+
+<form asp-action="Login" method="post">
+    <div>
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label>Şifre</label>
+        <input asp-for="Password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="form-check">
+        <input asp-for="RememberMe" class="form-check-input" />
+        <label class="form-check-label" for="RememberMe">Beni hatırla</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Giriş</button>
+
+    <div class="mt-2">
+        <a asp-action="ForgotPassword" asp-controller="Auth">Şifremi Unuttum</a>
+    </div>
+</form>

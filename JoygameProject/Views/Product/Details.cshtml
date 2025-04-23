@@ -1,0 +1,13 @@
+﻿@using JoygameProject.Application.DTOs
+@model ProductDto
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>@Model.Name</h3>
+    </div>
+    <div class="card-body">
+        <img src="@Model.ImageUrl" class="img-thumbnail mb-3" style="max-width:300px;" />
+        <p><strong>Fiyat:</strong> @Model.Price ₺</p>
+        <p><strong>Açıklama:</strong> @Model.Description</p>
+    </div>
+</div>
